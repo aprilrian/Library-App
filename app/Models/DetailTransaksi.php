@@ -11,12 +11,19 @@ class DetailTransaksi extends Model
 
     protected $table = 'detail_transaksi';
     protected $fillable = [
-        'idtransaksi', 'idbuku', 'tgl_kembali', 'denda', 'idpetugas',
+        'idtransaksi',
+        'idbuku',
+        'tgl_kembali',
+        'denda',
+        'idpetugas',
     ];
+
+    public $timestamps = false;
+
 
     public function buku()
     {
-        return $this->belongsTo(Buku::class, 'id');
+        return $this->belongsTo(Buku::class, 'idbuku');
     }
 
     public function transaksi()

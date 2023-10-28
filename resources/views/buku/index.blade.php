@@ -6,9 +6,15 @@
          <div class="flex items-center justify-center h-20 mb-4 rounded bg-gray-50 dark:bg-gray-800">
              <p class="text-3xl font-bold text-gray-900 dark:text-white">Daftar Buku</p>
          </div>
+
             <div class="py-12 flex items-center justify-center">
                 <div class="max-w-full mx-auto sm:px-6 lg:px-8">
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                        @if(session('success'))
+                        <div class="p-4 mt-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+                            {{ session('success') }}
+                        </div>
+                        @endif
                         <div class="p-6 text-gray-900 dark:text-gray-100 relative overflow-x-auto shadow-md sm:rounded-lg">
                             <table border="1" class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                                 <thead class=" text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400 text-center">
@@ -28,7 +34,7 @@
                                         <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white border py2">{{ $b->id }}</th>
                                         <td class="border px-4 py-2">{{ $b->isbn }}</td>
                                         <td class="border px-4 py-2">
-                                            <img src="{{ asset('coverbuku/'.$b->file_gambar) }}" alt="Book Cover" class="w-10 h-10 inline-block align-middle">
+                                            <img src="{{ asset('buku/'.$b->file_gambar) }}" alt="Book Cover" class="w-10 h-10 inline-block align-middle">
                                             <br>
                                             <span class="inline-block align-middle ml-2">{{ $b->judul }}</span>
                                         </td>

@@ -18,7 +18,7 @@ class Peminjaman extends Model
 
     public $timestamps = false;
 
-    public function detailTransaksis()
+public function detailTransaksi()
 {
     return $this->hasMany(DetailTransaksi::class, 'idtransaksi', 'idtransaksi');
 }

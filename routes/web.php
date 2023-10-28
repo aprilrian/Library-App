@@ -28,7 +28,7 @@ Route::middleware(['auth'])->group(function(){
     Route::get('/dashboard', [DashController::class, 'index'])->name('dashboard');
 
     // CRUD
-    Route::get('/buku', [BukuController::class, 'index'])->name('buku.index');
+    Route::get('/listbuku', [BukuController::class, 'index'])->name('buku.index');
     Route::match(['get', 'post'], '/tambahbuku', [BukuController::class, 'create'])->name('tambahbuku');
     // Route::get('/tambahbuku', [BukuController::class, 'create'])->name('buku.create');
     Route::post('/buku/store', [BukuController::class, 'store'])->name('buku.store');
@@ -44,13 +44,14 @@ Route::middleware(['auth'])->group(function(){
 
 
     //Transaksi
-    Route::get('/transaksi', [TransaksiController::class, 'index']);
+    Route::view('/form-peminjaman', 'transaksi/form-peminjaman')->name('form-peminjaman');
+    Route::get('/transaksi', [TransaksiController::class, 'berlangsung'])->name('transaksi.index');
     Route::get('/transaksi/berlangsung', [TransaksiController::class, 'berlangsung'])->name('transaksi.berlangsung');
     Route::get('/transaksi/melebihi', [TransaksiController::class, 'melebihi'])->name('transaksi.melebihi');
     Route::get('/transaksi/selesai', [TransaksiController::class, 'selesai'])->name('transaksi.selesai');
-    Route::view('/form-peminjaman', 'transaksi/form-peminjaman')->name('form-peminjaman');
+    // Route::view('/form-peminjaman', 'transaksi/form-peminjaman')->name('form-peminjaman');
+    // Route::post('/form-peminjaman', [TransaksiController::class, 'add'])->name('transaksi.form-peminjaman');
     Route::post('/form-peminjaman', [TransaksiController::class, 'add'])->name('transaksi.form-peminjaman');
-
     // Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
     // Route::get('/transaksi/berlangsung', [TransaksiController::class, 'berlangsung'])->name('transaksi.berlangsung');
     // Route::get('/transaksi/melebihi', [TransaksiController::class, 'melebihi'])->name('transaksi.melebihi');

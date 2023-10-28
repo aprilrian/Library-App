@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Buku;
+use Illuminate\Http\Request;
 use App\Models\DetailTransaksi;
+use App\Models\Buku;
 use App\Models\Peminjaman;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+
 
 class TransaksiController extends Controller
 {
@@ -106,6 +108,22 @@ class TransaksiController extends Controller
 
     public function add(Request $request): RedirectResponse
     {
+        $request->validate([
+            'noktp' => 'required|numeric', // Contoh validasi untuk Nomor KTP
+            'buku.*' => 'required|numeric', // Validasi untuk setiap ID Buku dalam array
+            'tgl_pinjam' => 'required|date', // Validasi untuk Tanggal Pinjam
+            'idpetugas' => 'required|numeric', // Validasi untuk ID Petugas
+        ], [
+            'noktp.required' => 'Nomor KTP Anggota wajib diisi.',
+            'noktp.numeric' => 'Nomor KTP Anggota harus berupa angka.',
+            'buku.*.required' => 'Setiap ID Buku wajib diisi.',
+            'buku.*.numeric' => 'Setiap ID Buku harus berupa angka.',
+            'tgl_pinjam.required' => 'Tanggal Pinjam wajib diisi.',
+            'tgl_pinjam.date' => 'Tanggal Pinjam harus berupa tanggal yang valid.',
+            'idpetugas.required' => 'ID Petugas wajib diisi.',
+            'idpetugas.numeric' => 'ID Petugas harus berupa angka.',
+        ]);
+
         $ids_buku = $request->input('buku');
 
         if (count($ids_buku) > 2) {
@@ -175,11 +193,12 @@ class TransaksiController extends Controller
 
             DB::commit();
 
-            return redirect()->route('transaksi.index')->with('success', 'Peminjaman berhasil');
+            return redirect()->back()->with('success', 'Peminjaman berhasil');
         } catch (\Exception $e) {
             DB::rollBack();
             dd('Peminjaman gagal: ' . $e->getMessage());
-            return redirect()->route('transaksi.form-peminjaman')->with('error', 'Peminjaman gagal.');
+            return redirect()->back()->with('error', 'Peminjaman gagal.');
         }
     }
+
 }
