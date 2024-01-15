@@ -42,7 +42,6 @@ Route::middleware(['auth'])->group(function(){
     Route::get('verifikasi', [AnggotaController::class, 'showAll']);
     Route::post('verifikasi', [AnggotaController::class, 'verifikasi'])->name('verifikasi');
 
-
     //Transaksi
     Route::view('/form-peminjaman', 'transaksi/form-peminjaman')->name('form-peminjaman');
     Route::get('/transaksi', [TransaksiController::class, 'berlangsung'])->name('transaksi.index');
@@ -52,6 +51,9 @@ Route::middleware(['auth'])->group(function(){
     // Route::view('/form-peminjaman', 'transaksi/form-peminjaman')->name('form-peminjaman');
     // Route::post('/form-peminjaman', [TransaksiController::class, 'add'])->name('transaksi.form-peminjaman');
     Route::post('/form-peminjaman', [TransaksiController::class, 'add'])->name('transaksi.form-peminjaman');
+    Route::get('/transaksi/daftar-transaksi', [TransaksiController::class, 'daftarTransaksi'])->name('transaksi.daftar-transaksi');
+    Route::get('/form-pengembalian/{idtransaksi}', [TransaksiController::class, 'formPengembalian'])->name('form-pengembalian');
+    Route::put('/form-pengembalian/{idtransaksi}', [TransaksiController::class, 'update'])->name('transaksi.form-pengembalian');
     // Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
     // Route::get('/transaksi/berlangsung', [TransaksiController::class, 'berlangsung'])->name('transaksi.berlangsung');
     // Route::get('/transaksi/melebihi', [TransaksiController::class, 'melebihi'])->name('transaksi.melebihi');

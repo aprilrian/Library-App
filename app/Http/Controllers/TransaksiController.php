@@ -9,6 +9,7 @@ use App\Models\Peminjaman;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon; 
 
 
 class TransaksiController extends Controller
@@ -79,32 +80,19 @@ class TransaksiController extends Controller
 
     public function melebihi()
     {
-        $transaksiMelebihiTanggalKembali = [];
-
-        $transaksi = DetailTransaksi::join('buku', 'buku.id', '=', 'detail_transaksi.idbuku')
-            ->join('peminjaman', 'peminjaman.idtransaksi', '=', 'detail_transaksi.idtransaksi')
-            ->join('anggota', 'anggota.noktp', '=', 'peminjaman.noktp')
-            ->join('petugas', 'petugas.idpetugas', '=', 'detail_transaksi.idpetugas')
+        $transaksiMelebihiTanggalKembali = DetailTransaksi::leftJoin('buku', 'buku.id', '=', 'detail_transaksi.idbuku')
+            ->leftJoin('peminjaman', 'peminjaman.idtransaksi', '=', 'detail_transaksi.idtransaksi')
+            ->leftJoin('anggota', 'anggota.noktp', '=', 'peminjaman.noktp')
+            ->leftJoin('petugas', 'petugas.idpetugas', '=', 'detail_transaksi.idpetugas')
             ->select('detail_transaksi.*', 'buku.judul AS judul_buku', 'peminjaman.tgl_pinjam AS tanggal_peminjaman', 'anggota.nama AS nama', 'petugas.nama AS namapetugas', 'buku.isbn AS isbn')
-            ->whereNotNull('detail_transaksi.tgl_kembali') // Hanya ambil transaksi yang memiliki tanggal kembali
+            ->whereNotNull('detail_transaksi.tgl_kembali')
+            ->where('detail_transaksi.denda', '>', 0)
             ->orderBy('detail_transaksi.idtransaksi', 'asc')
             ->get();
-
-        // Hitung denda dan pisahkan ke dalam kategori
-        foreach ($transaksi as $t) {
-            $tanggalPeminjaman = new \DateTime($t->tanggal_peminjaman);
-            $tanggalKembali = new \DateTime($t->tgl_kembali);
-            $selisihHari = $tanggalPeminjaman->diff($tanggalKembali)->days;
-
-            if ($selisihHari > 14) {
-                $denda = ($selisihHari - 14) * 1000;
-                $t->denda = $denda;
-                $transaksiMelebihiTanggalKembali[] = $t;
-            }
-        }
-
+    
         return view('transaksi.melebihi', compact('transaksiMelebihiTanggalKembali'));
     }
+    
 
     public function add(Request $request): RedirectResponse
     {
@@ -193,12 +181,74 @@ class TransaksiController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Peminjaman berhasil');
+            return redirect()->back()->with('success', 'Peminjaman berhasil.');
         } catch (\Exception $e) {
             DB::rollBack();
             dd('Peminjaman gagal: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Peminjaman gagal.');
         }
     }
+
+    public function daftarTransaksi()
+    {
+        $daftarTransaksi = [];
+
+        $transaksi = DetailTransaksi::join('buku', 'buku.id', '=', 'detail_transaksi.idbuku')
+        ->leftJoin('peminjaman', 'peminjaman.idtransaksi', '=', 'detail_transaksi.idtransaksi')
+        ->leftJoin('anggota', 'anggota.noktp', '=', 'peminjaman.noktp')
+        ->leftJoin('petugas', 'petugas.idpetugas', '=', 'detail_transaksi.idpetugas')
+        ->select('detail_transaksi.*', 'buku.judul AS judul_buku', 'peminjaman.tgl_pinjam AS tanggal_peminjaman', 'anggota.nama AS nama', 'petugas.nama AS namapetugas', 'buku.isbn AS isbn')
+        ->orderBy('detail_transaksi.idtransaksi', 'asc')
+        ->get();
+
+        // Hitung denda dan pisahkan ke dalam kategori
+        foreach ($transaksi as $t) {
+            if (($t->tgl_kembali) == null){
+                $daftarTransaksi[] = $t;
+            }
+        }
+        return view('transaksi.daftar-transaksi', compact('daftarTransaksi'));
+    }
+
+    public function update(Request $request, int $idtransaksi)
+    {
+        $request->validate([
+            'tgl_kembali' => 'required|date', // Validasi untuk Tanggal Kembali
+        ], [
+            'tgl_kembali.required' => 'Tanggal Kembali wajib diisi.',
+            'tgl_kembali.date' => 'Tanggal Kembali harus berupa tanggal yang valid.',
+        ]);
+    
+        $transaksi = DetailTransaksi::find($idtransaksi);
+    
+        // Menghitung selisih hari antara tanggal pengembalian dan tanggal peminjaman menggunakan Carbon
+        $tanggalPeminjaman = Carbon::parse($transaksi->tgl_pinjam);
+        $tanggalKembali = Carbon::parse($request->tgl_kembali);
+        $selisihHari = $tanggalKembali->diffInDays($tanggalPeminjaman);
+    
+        // Menghitung denda jika selisih hari lebih dari 14
+        if ($selisihHari > 14) {
+            $denda = (($selisihHari - 14) * 1000) - 2000;
+        } else {
+            $denda = 0; // Tidak ada denda jika kurang dari atau sama dengan 14 hari
+        }
+    
+        // Menyimpan tanggal kembali dan denda ke dalam model
+        $transaksi->tgl_kembali = $request->tgl_kembali;
+        $transaksi->denda = $denda;
+        $transaksi->save();
+    
+        return redirect()->route("transaksi.daftar-transaksi")->with('success', 'Data pengembalian berhasil diperbarui.');
+    }
+    
+        
+    
+
+    public function formPengembalian($idtransaksi) {
+        $transaksi = DetailTransaksi::where('idtransaksi', $idtransaksi)->first(); // Mengambil data transaksi berdasarkan ID
+        return view('transaksi.form-pengembalian', ['transaksi' => $transaksi]);
+    }
+    
+    
 
 }
